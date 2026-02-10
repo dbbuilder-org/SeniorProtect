@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../services/auth/authService.js';
+import { AppError } from '../utils/AppError.js';
 import { ZodError } from 'zod';
 
 export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction) {

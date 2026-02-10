@@ -1,26 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Link, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../contexts/AuthContext';
+import { useSignIn } from '@clerk/clerk-expo';
 import { SafeText } from '../../components/ui/SafeText';
 import { BigButton } from '../../components/ui/BigButton';
 import { Input } from '../../components/ui/Input';
 
 export default function LoginScreen() {
-  const { login, error, clearError, isLoading } = useAuth();
+  const { signIn, setActive, isLoaded } = useSignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  async function handleLogin() {
-    if (!email || !password) return;
+  const handleLogin = useCallback(async () => {
+    if (!isLoaded || !email || !password) return;
+    setError('');
+    setLoading(true);
+
     try {
-      await login(email, password);
-      router.replace('/(tabs)');
-    } catch {
-      // Error is handled in context
+      const result = await signIn.create({ identifier: email, password });
+
+      if (result.status === 'complete') {
+        await setActive({ session: result.createdSessionId });
+        router.replace('/(tabs)');
+      } else {
+        setError('Sign in could not be completed. Please try again.');
+      }
+    } catch (err: any) {
+      const msg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || 'Sign in failed';
+      setError(msg);
+    } finally {
+      setLoading(false);
     }
-  }
+  }, [isLoaded, email, password, signIn, setActive]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -36,16 +50,16 @@ export default function LoginScreen() {
             </SafeText>
           </View>
 
-          {error && (
+          {error ? (
             <View style={styles.errorBox}>
               <SafeText color="#B71C1C">{error}</SafeText>
             </View>
-          )}
+          ) : null}
 
           <Input
             label="Email Address"
             value={email}
-            onChangeText={(text) => { clearError(); setEmail(text); }}
+            onChangeText={(text) => { setError(''); setEmail(text); }}
             placeholder="you@example.com"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -54,7 +68,7 @@ export default function LoginScreen() {
           <Input
             label="Password"
             value={password}
-            onChangeText={(text) => { clearError(); setPassword(text); }}
+            onChangeText={(text) => { setError(''); setPassword(text); }}
             placeholder="Your password"
             secureTextEntry
           />
@@ -62,7 +76,7 @@ export default function LoginScreen() {
           <BigButton
             title="Sign In"
             onPress={handleLogin}
-            loading={isLoading}
+            loading={loading}
             disabled={!email || !password}
             accessibilityLabel="Sign in to your account"
           />

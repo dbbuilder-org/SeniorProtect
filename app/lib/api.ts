@@ -1,10 +1,16 @@
-import * as SecureStore from 'expo-secure-store';
-import Constants from 'expo-constants';
-
 const DEV_URL = 'http://localhost:3000';
 const PROD_URL = process.env.EXPO_PUBLIC_API_URL || DEV_URL;
 
 const BASE_URL = __DEV__ ? DEV_URL : PROD_URL;
+
+type TokenGetter = () => Promise<string | null>;
+
+let tokenGetter: TokenGetter | null = null;
+
+/** Called by AuthContext to wire Clerk's getToken into API requests */
+export function setTokenGetter(getter: TokenGetter) {
+  tokenGetter = getter;
+}
 
 interface ApiOptions {
   method?: string;
@@ -25,32 +31,6 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  async getToken(): Promise<string | null> {
-    try {
-      return await SecureStore.getItemAsync('accessToken');
-    } catch {
-      return null;
-    }
-  }
-
-  async setTokens(accessToken: string, refreshToken: string): Promise<void> {
-    await SecureStore.setItemAsync('accessToken', accessToken);
-    await SecureStore.setItemAsync('refreshToken', refreshToken);
-  }
-
-  async clearTokens(): Promise<void> {
-    await SecureStore.deleteItemAsync('accessToken');
-    await SecureStore.deleteItemAsync('refreshToken');
-  }
-
-  async getRefreshToken(): Promise<string | null> {
-    try {
-      return await SecureStore.getItemAsync('refreshToken');
-    } catch {
-      return null;
-    }
-  }
-
   async fetch<T>(endpoint: string, options: ApiOptions = {}): Promise<T> {
     const { method = 'GET', body, auth = true } = options;
 
@@ -58,8 +38,8 @@ class ApiClient {
       'Content-Type': 'application/json',
     };
 
-    if (auth) {
-      const token = await this.getToken();
+    if (auth && tokenGetter) {
+      const token = await tokenGetter();
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
@@ -73,77 +53,12 @@ class ApiClient {
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    if (response.status === 401 && auth) {
-      // Try refresh
-      const refreshed = await this.refreshTokens();
-      if (refreshed) {
-        const newToken = await this.getToken();
-        headers['Authorization'] = `Bearer ${newToken}`;
-        const retryResponse = await fetch(url, {
-          method,
-          headers,
-          body: body ? JSON.stringify(body) : undefined,
-        });
-        if (!retryResponse.ok) {
-          const error = await retryResponse.json();
-          throw new ApiError(error.message || 'Request failed', retryResponse.status);
-        }
-        return retryResponse.json();
-      }
-      throw new ApiError('Session expired. Please log in again.', 401);
-    }
-
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Request failed' }));
       throw new ApiError(error.message || 'Request failed', response.status);
     }
 
     return response.json();
-  }
-
-  private async refreshTokens(): Promise<boolean> {
-    try {
-      const refreshToken = await this.getRefreshToken();
-      if (!refreshToken) return false;
-
-      const response = await fetch(`${this.baseUrl}/api/v1/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      });
-
-      if (!response.ok) return false;
-
-      const data = await response.json();
-      await this.setTokens(data.accessToken, data.refreshToken);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  // Auth methods
-  async register(email: string, password: string, displayName: string) {
-    return this.fetch<{ user: any; tokens: { accessToken: string; refreshToken: string } }>(
-      '/api/v1/auth/register',
-      { method: 'POST', body: { email, password, displayName }, auth: false }
-    );
-  }
-
-  async login(email: string, password: string) {
-    return this.fetch<{ user: any; tokens: { accessToken: string; refreshToken: string } }>(
-      '/api/v1/auth/login',
-      { method: 'POST', body: { email, password }, auth: false }
-    );
-  }
-
-  async logout() {
-    const refreshToken = await this.getRefreshToken();
-    try {
-      await this.fetch('/api/v1/auth/logout', { method: 'POST', body: { refreshToken } });
-    } finally {
-      await this.clearTokens();
-    }
   }
 
   // Check methods

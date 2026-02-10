@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { resolve } from 'path';
 import { pool } from '../config/database.js';
 
@@ -15,22 +15,25 @@ async function migrate() {
       )
     `);
 
-    const migrationFile = '001_initial.sql';
-    const { rows } = await pool.query(
-      'SELECT name FROM migrations WHERE name = $1',
-      [migrationFile]
-    );
+    const migrationsDir = resolve(import.meta.dirname, 'migrations');
+    const files = readdirSync(migrationsDir)
+      .filter((f) => f.endsWith('.sql'))
+      .sort();
 
-    if (rows.length > 0) {
-      console.log(`Migration ${migrationFile} already executed, skipping`);
-    } else {
-      const sql = readFileSync(
-        resolve(import.meta.dirname, 'migrations', migrationFile),
-        'utf-8'
+    for (const migrationFile of files) {
+      const { rows } = await pool.query(
+        'SELECT name FROM migrations WHERE name = $1',
+        [migrationFile]
       );
-      await pool.query(sql);
-      await pool.query('INSERT INTO migrations (name) VALUES ($1)', [migrationFile]);
-      console.log(`Migration ${migrationFile} executed successfully`);
+
+      if (rows.length > 0) {
+        console.log(`Migration ${migrationFile} already executed, skipping`);
+      } else {
+        const sql = readFileSync(resolve(migrationsDir, migrationFile), 'utf-8');
+        await pool.query(sql);
+        await pool.query('INSERT INTO migrations (name) VALUES ($1)', [migrationFile]);
+        console.log(`Migration ${migrationFile} executed successfully`);
+      }
     }
 
     console.log('Migrations complete');

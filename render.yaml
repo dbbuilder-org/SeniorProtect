@@ -19,14 +19,13 @@ services:
           name: seniorprotect-db
           property: connectionString
       - key: REDIS_URL
-        fromService:
-          name: seniorprotect-redis
-          type: redis
-          property: connectionString
-      - key: JWT_SECRET
-        generateValue: true
-      - key: JWT_REFRESH_SECRET
-        generateValue: true
+        sync: false  # Create Redis manually in Render dashboard, paste connection string here
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
       - key: CORS_ORIGIN
         value: "*"
       - key: GOOGLE_SAFE_BROWSING_API_KEY
@@ -43,8 +42,5 @@ databases:
     databaseName: seniorprotect
     postgresMajorVersion: "15"
 
-  - name: seniorprotect-redis
-    type: redis
-    plan: free
-    region: oregon
-    maxmemoryPolicy: allkeys-lru
+  # Redis: create manually in Render dashboard (not supported in render.yaml)
+  # Then set REDIS_URL env var on the web service

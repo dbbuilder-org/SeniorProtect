@@ -7,6 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "seniorprotect",
+    "owner": "servicevision",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -14,13 +15,15 @@
       "backgroundColor": "#1565C0"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "net.servicevision.seniorprotect"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1565C0"
-      }
+      },
+      "package": "net.servicevision.seniorprotect"
     },
     "web": {
       "favicon": "./assets/favicon.png",

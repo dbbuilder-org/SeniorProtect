@@ -1,40 +1,123 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Link, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../contexts/AuthContext';
+import { useSignUp } from '@clerk/clerk-expo';
 import { SafeText } from '../../components/ui/SafeText';
 import { BigButton } from '../../components/ui/BigButton';
 import { Input } from '../../components/ui/Input';
 
 export default function RegisterScreen() {
-  const { register, error, clearError, isLoading } = useAuth();
+  const { signUp, setActive, isLoaded } = useSignUp();
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [localError, setLocalError] = useState('');
+  const [code, setCode] = useState('');
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  async function handleRegister() {
-    setLocalError('');
-    if (!displayName || !email || !password) return;
+  const handleRegister = useCallback(async () => {
+    if (!isLoaded || !displayName || !email || !password) return;
     if (password !== confirmPassword) {
-      setLocalError('Passwords do not match');
+      setError('Passwords do not match');
       return;
     }
     if (password.length < 8) {
-      setLocalError('Password must be at least 8 characters');
+      setError('Password must be at least 8 characters');
       return;
     }
-    try {
-      await register(email, password, displayName);
-      router.replace('/(tabs)');
-    } catch {
-      // Error is handled in context
-    }
-  }
 
-  const displayError = localError || error;
+    setError('');
+    setLoading(true);
+
+    try {
+      // Split name into first/last for Clerk
+      const parts = displayName.trim().split(' ');
+      const firstName = parts[0];
+      const lastName = parts.slice(1).join(' ') || undefined;
+
+      await signUp.create({
+        emailAddress: email,
+        password,
+        firstName,
+        lastName,
+      });
+
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      setPendingVerification(true);
+    } catch (err: any) {
+      const msg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || 'Registration failed';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, [isLoaded, displayName, email, password, confirmPassword, signUp]);
+
+  const handleVerify = useCallback(async () => {
+    if (!isLoaded || !code) return;
+    setError('');
+    setLoading(true);
+
+    try {
+      const result = await signUp.attemptEmailAddressVerification({ code });
+
+      if (result.status === 'complete') {
+        await setActive({ session: result.createdSessionId });
+        router.replace('/(tabs)');
+      } else {
+        setError('Verification could not be completed. Please try again.');
+      }
+    } catch (err: any) {
+      const msg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || 'Verification failed';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, [isLoaded, code, signUp, setActive]);
+
+  if (pendingVerification) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.flex}
+        >
+          <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+            <View style={styles.header}>
+              <SafeText variant="h1" align="center">Verify Your Email</SafeText>
+              <SafeText variant="bodyLarge" color="#616161" align="center" style={styles.subtitle}>
+                We sent a verification code to {email}
+              </SafeText>
+            </View>
+
+            {error ? (
+              <View style={styles.errorBox}>
+                <SafeText color="#B71C1C">{error}</SafeText>
+              </View>
+            ) : null}
+
+            <Input
+              label="Verification Code"
+              value={code}
+              onChangeText={(text) => { setError(''); setCode(text); }}
+              placeholder="Enter 6-digit code"
+              keyboardType="number-pad"
+            />
+
+            <BigButton
+              title="Verify Email"
+              onPress={handleVerify}
+              loading={loading}
+              disabled={!code}
+              accessibilityLabel="Verify your email address"
+            />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -50,23 +133,23 @@ export default function RegisterScreen() {
             </SafeText>
           </View>
 
-          {displayError && (
+          {error ? (
             <View style={styles.errorBox}>
-              <SafeText color="#B71C1C">{displayError}</SafeText>
+              <SafeText color="#B71C1C">{error}</SafeText>
             </View>
-          )}
+          ) : null}
 
           <Input
             label="Your Name"
             value={displayName}
-            onChangeText={(text) => { clearError(); setDisplayName(text); }}
+            onChangeText={(text) => { setError(''); setDisplayName(text); }}
             placeholder="John Smith"
           />
 
           <Input
             label="Email Address"
             value={email}
-            onChangeText={(text) => { clearError(); setEmail(text); }}
+            onChangeText={(text) => { setError(''); setEmail(text); }}
             placeholder="you@example.com"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -75,7 +158,7 @@ export default function RegisterScreen() {
           <Input
             label="Password"
             value={password}
-            onChangeText={(text) => { clearError(); setLocalError(''); setPassword(text); }}
+            onChangeText={(text) => { setError(''); setPassword(text); }}
             placeholder="At least 8 characters"
             secureTextEntry
           />
@@ -83,7 +166,7 @@ export default function RegisterScreen() {
           <Input
             label="Confirm Password"
             value={confirmPassword}
-            onChangeText={(text) => { setLocalError(''); setConfirmPassword(text); }}
+            onChangeText={(text) => { setError(''); setConfirmPassword(text); }}
             placeholder="Type your password again"
             secureTextEntry
           />
@@ -91,7 +174,7 @@ export default function RegisterScreen() {
           <BigButton
             title="Create Account"
             onPress={handleRegister}
-            loading={isLoading}
+            loading={loading}
             disabled={!displayName || !email || !password || !confirmPassword}
             accessibilityLabel="Create your account"
           />
