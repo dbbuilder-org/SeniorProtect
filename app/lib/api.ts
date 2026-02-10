@@ -1,7 +1,4 @@
-const DEV_URL = 'http://localhost:3000';
-const PROD_URL = process.env.EXPO_PUBLIC_API_URL || DEV_URL;
-
-const BASE_URL = __DEV__ ? DEV_URL : PROD_URL;
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 type TokenGetter = () => Promise<string | null>;
 
