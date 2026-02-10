@@ -45,7 +45,7 @@ export async function checkSafeBrowsing(url: string): Promise<ThreatSignal[]> {
       return [];
     }
 
-    const data: SafeBrowsingResponse = await response.json();
+    const data = await response.json() as SafeBrowsingResponse;
 
     if (!data.matches || data.matches.length === 0) {
       return [];

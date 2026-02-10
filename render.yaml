@@ -7,7 +7,7 @@ services:
     runtime: node
     region: oregon
     plan: free
-    buildCommand: npm install --legacy-peer-deps && npm run build:shared && npm run build:server
+    buildCommand: npm install --legacy-peer-deps --include=dev && npm run build:shared && npm run build:server
     startCommand: npm run db:migrate && npm run db:seed && node server/dist/index.js
     envVars:
       - key: NODE_ENV

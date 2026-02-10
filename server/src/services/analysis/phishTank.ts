@@ -27,7 +27,7 @@ export async function checkPhishTank(url: string): Promise<ThreatSignal[]> {
       return [];
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
 
     if (data.results?.in_database && data.results?.valid) {
       return [{
