@@ -130,14 +130,14 @@ export default function HomeScreen() {
         <BigButton
           title="Check a Text"
           icon={<Ionicons name="chatbubble-outline" size={22} color="#FFFFFF" />}
-          onPress={() => router.push('/check/text')}
+          onPress={() => router.navigate('/(tabs)/check-text')}
           style={styles.actionBtn}
           accessibilityLabel="Check a text message for scams"
         />
         <BigButton
           title="Check an Email"
           icon={<Ionicons name="mail-outline" size={22} color="#FFFFFF" />}
-          onPress={() => router.push('/check/email')}
+          onPress={() => router.navigate('/(tabs)/check-email')}
           style={styles.actionBtn}
           accessibilityLabel="Check an email for scams"
         />
@@ -201,7 +201,8 @@ const styles = StyleSheet.create({
   actions: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 8,
+    paddingBottom: 16,
+    marginTop: -12,
     gap: 10,
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',

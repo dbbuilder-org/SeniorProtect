@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { SafeText } from '../../components/ui/SafeText';
 import { BigButton } from '../../components/ui/BigButton';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
-import { BottomNav } from '../../components/ui/BottomNav';
 
 const LEVEL_STYLES = {
   safe: { bg: '#E8F5E9', text: '#1B5E20', icon: '✅', title: 'Looks Safe' },
@@ -30,7 +28,7 @@ export default function ResultsScreen() {
   const tq = result.threeQuestions || {};
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         {/* Banner */}
         <View style={[styles.banner, { backgroundColor: levelStyle.bg }]}>
@@ -111,8 +109,7 @@ export default function ResultsScreen() {
           />
         </View>
       </ScrollView>
-      <BottomNav />
-    </SafeAreaView>
+    </View>
   );
 }
 

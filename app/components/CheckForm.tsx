@@ -1,48 +1,24 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Image, Pressable, Alert } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Image, Pressable } from 'react-native';
+import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { SafeText } from '../../components/ui/SafeText';
-import { BigButton } from '../../components/ui/BigButton';
-import { Input } from '../../components/ui/Input';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { BottomNav } from '../../components/ui/BottomNav';
-import { api } from '../../lib/api';
+import { SafeText } from './ui/SafeText';
+import { BigButton } from './ui/BigButton';
+import { Input } from './ui/Input';
+import { LoadingSpinner } from './ui/LoadingSpinner';
+import { api } from '../lib/api';
 
-const TYPE_CONFIG: Record<string, { title: string; placeholder: string; multiline: boolean; senderField: boolean; subjectField: boolean; allowPhoto: boolean }> = {
-  email: {
-    title: 'Check an Email',
-    placeholder: 'Paste the email content here...',
-    multiline: true,
-    senderField: true,
-    subjectField: true,
-    allowPhoto: true,
-  },
-  text: {
-    title: 'Check a Text Message',
-    placeholder: 'Paste the text message here...',
-    multiline: true,
-    senderField: true,
-    subjectField: false,
-    allowPhoto: true,
-  },
-  url: {
-    title: 'Check a Website',
-    placeholder: 'https://example.com',
-    multiline: false,
-    senderField: false,
-    subjectField: false,
-    allowPhoto: false,
-  },
-};
+interface CheckFormProps {
+  type: 'text' | 'email';
+  title: string;
+  placeholder: string;
+  senderField: boolean;
+  subjectField: boolean;
+}
 
 type InputMode = 'text' | 'photo';
 
-export default function CheckScreen() {
-  const { type } = useLocalSearchParams<{ type: string }>();
-  const config = TYPE_CONFIG[type] || TYPE_CONFIG.email;
-
+export function CheckForm({ type, title, placeholder, senderField, subjectField }: CheckFormProps) {
   const [inputMode, setInputMode] = useState<InputMode>('text');
   const [content, setContent] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -87,7 +63,6 @@ export default function CheckScreen() {
       if (sender) metadata.sender = sender;
       if (subject) metadata.subject = subject;
 
-      // For photo mode, send the base64 image as content with a flag
       const checkContent = inputMode === 'photo'
         ? `[IMAGE SCREENSHOT]\n${imageBase64}`
         : content;
@@ -95,14 +70,12 @@ export default function CheckScreen() {
       let result;
       if (type === 'email') {
         result = await api.checkEmail(checkContent, metadata);
-      } else if (type === 'text') {
-        result = await api.checkText(checkContent, metadata);
       } else {
-        result = await api.checkUrl(checkContent);
+        result = await api.checkText(checkContent, metadata);
       }
 
       router.push({
-        pathname: '/check/results',
+        pathname: '/(tabs)/check-results',
         params: { data: JSON.stringify(result) },
       });
     } catch (err: any) {
@@ -112,52 +85,26 @@ export default function CheckScreen() {
     }
   }
 
-  async function handleAddTrustedSite() {
-    if (!content.trim()) return;
-    try {
-      let domain = content.trim();
-      // Strip protocol and path to get just the domain
-      domain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-      const name = domain.replace(/^www\./, '');
-
-      await api.addTrustedSite(name, domain, 'other', `Added by user`);
-      Alert.alert('Added', `${domain} has been added to your trusted sites.`);
-    } catch (err: any) {
-      Alert.alert('Could not add', err.message || 'Failed to add site.');
-    }
-  }
-
   const hasContent = inputMode === 'photo' ? !!imageBase64 : !!content.trim();
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <LoadingSpinner message={`Checking ${type}...`} />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Pressable
-            onPress={() => router.back()}
-            accessibilityLabel="Go back"
-            accessibilityRole="button"
-            style={styles.backButton}
-          >
-            <SafeText variant="body" color="#1565C0">← Back</SafeText>
-          </Pressable>
-
-          <SafeText variant="h1">{config.title}</SafeText>
+          <SafeText variant="h1">{title}</SafeText>
           <SafeText variant="body" color="#616161" style={styles.desc}>
-            {type === 'url'
-              ? 'Enter the web address you want to check.'
-              : 'Paste the content or a screenshot and we\'ll check it for you.'}
+            Paste the content or a screenshot and we'll check it for you.
           </SafeText>
 
           {error && (
@@ -166,42 +113,38 @@ export default function CheckScreen() {
             </View>
           )}
 
-          {/* Input mode toggle for email/text */}
-          {config.allowPhoto && (
-            <View style={styles.modeToggle}>
-              <Pressable
-                style={[styles.modeButton, inputMode === 'text' && styles.modeButtonActive]}
-                onPress={() => setInputMode('text')}
-                accessibilityLabel="Type text"
-                accessibilityRole="button"
+          <View style={styles.modeToggle}>
+            <Pressable
+              style={[styles.modeButton, inputMode === 'text' && styles.modeButtonActive]}
+              onPress={() => setInputMode('text')}
+              accessibilityLabel="Type text"
+              accessibilityRole="button"
+            >
+              <SafeText
+                variant="body"
+                color={inputMode === 'text' ? '#FFFFFF' : '#1565C0'}
+                style={styles.modeButtonText}
               >
-                <SafeText
-                  variant="body"
-                  color={inputMode === 'text' ? '#FFFFFF' : '#1565C0'}
-                  style={styles.modeButtonText}
-                >
-                  Type Text
-                </SafeText>
-              </Pressable>
-              <Pressable
-                style={[styles.modeButton, inputMode === 'photo' && styles.modeButtonActive]}
-                onPress={() => setInputMode('photo')}
-                accessibilityLabel="Paste screenshot"
-                accessibilityRole="button"
+                Type Text
+              </SafeText>
+            </Pressable>
+            <Pressable
+              style={[styles.modeButton, inputMode === 'photo' && styles.modeButtonActive]}
+              onPress={() => setInputMode('photo')}
+              accessibilityLabel="Paste screenshot"
+              accessibilityRole="button"
+            >
+              <SafeText
+                variant="body"
+                color={inputMode === 'photo' ? '#FFFFFF' : '#1565C0'}
+                style={styles.modeButtonText}
               >
-                <SafeText
-                  variant="body"
-                  color={inputMode === 'photo' ? '#FFFFFF' : '#1565C0'}
-                  style={styles.modeButtonText}
-                >
-                  Screenshot
-                </SafeText>
-              </Pressable>
-            </View>
-          )}
+                Screenshot
+              </SafeText>
+            </Pressable>
+          </View>
 
-          {/* Main content / photo input — shown first */}
-          {inputMode === 'photo' && config.allowPhoto ? (
+          {inputMode === 'photo' ? (
             <View style={styles.photoSection}>
               {imageUri ? (
                 <View>
@@ -230,19 +173,17 @@ export default function CheckScreen() {
             </View>
           ) : (
             <Input
-              label={type === 'url' ? 'Website Address' : 'Content'}
+              label="Content"
               value={content}
               onChangeText={setContent}
-              placeholder={config.placeholder}
-              multiline={config.multiline}
+              placeholder={placeholder}
+              multiline
               autoCapitalize="none"
-              keyboardType={type === 'url' ? 'url' : 'default'}
-              style={config.multiline ? styles.multiline : undefined}
+              style={styles.multiline}
             />
           )}
 
-          {/* Optional metadata fields — below main content */}
-          {config.senderField && (
+          {senderField && (
             <Input
               label="From (optional)"
               value={sender}
@@ -252,7 +193,7 @@ export default function CheckScreen() {
             />
           )}
 
-          {config.subjectField && (
+          {subjectField && (
             <Input
               label="Subject (optional)"
               value={subject}
@@ -267,30 +208,17 @@ export default function CheckScreen() {
             disabled={!hasContent}
             accessibilityLabel={`Check this ${type} for scams`}
           />
-
-          {type === 'url' && (
-            <BigButton
-              title="Add to Trusted Sites"
-              onPress={handleAddTrustedSite}
-              variant="outline"
-              disabled={!content.trim()}
-              accessibilityLabel="Add this website to your trusted sites list"
-              style={styles.addSiteButton}
-            />
-          )}
         </ScrollView>
       </KeyboardAvoidingView>
-      <BottomNav />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   flex: { flex: 1 },
-  content: { padding: 20, paddingTop: 8 },
+  content: { padding: 20, paddingTop: 16 },
   desc: { marginTop: 2, marginBottom: 12 },
-  backButton: { alignSelf: 'flex-start', paddingVertical: 8, marginBottom: 4 },
   errorBox: {
     backgroundColor: '#FFEBEE',
     padding: 12,
@@ -344,9 +272,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
   removeButton: {
-    marginTop: 8,
-  },
-  addSiteButton: {
     marginTop: 8,
   },
 });

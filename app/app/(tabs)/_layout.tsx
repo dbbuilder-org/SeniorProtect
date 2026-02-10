@@ -1,7 +1,6 @@
 import { Tabs } from 'expo-router';
 import { View, StyleSheet } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 function TabIcon({ name, color, focused }: { name: keyof typeof Ionicons.glyphMap; color: string; focused: boolean }) {
   return (
@@ -40,16 +39,25 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="checker"
+        name="check-text"
         options={{
-          title: 'Checker',
+          title: 'Text',
           tabBarIcon: ({ focused }) => (
-            <View style={[styles.iconWrap, focused && styles.iconWrapFocused]}>
-              <MaterialCommunityIcons name="magnify" size={24} color={focused ? '#1565C0' : '#FFFFFF'} />
-            </View>
+            <TabIcon name="chatbubble-outline" color={focused ? '#1565C0' : '#FFFFFF'} focused={focused} />
           ),
-          tabBarLabel: 'Checker',
-          tabBarAccessibilityLabel: 'Safety Checker',
+          tabBarLabel: 'Text',
+          tabBarAccessibilityLabel: 'Check a text message',
+        }}
+      />
+      <Tabs.Screen
+        name="check-email"
+        options={{
+          title: 'Email',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="mail-outline" color={focused ? '#1565C0' : '#FFFFFF'} focused={focused} />
+          ),
+          tabBarLabel: 'Email',
+          tabBarAccessibilityLabel: 'Check an email',
         }}
       />
       <Tabs.Screen
@@ -73,6 +81,10 @@ export default function TabsLayout() {
           tabBarLabel: 'Settings',
           tabBarAccessibilityLabel: 'App settings',
         }}
+      />
+      <Tabs.Screen
+        name="check-results"
+        options={{ href: null }}
       />
     </Tabs>
   );
