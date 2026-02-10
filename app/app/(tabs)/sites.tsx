@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, Pressable, TextInput, Text, Modal } from 'react-native';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { View, StyleSheet, FlatList, Pressable, TextInput, Text, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
 import { SafeText } from '../../components/ui/SafeText';
-import { Card } from '../../components/ui/Card';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { api } from '../../lib/api';
+import { getFavorites, toggleFavorite } from '../../lib/favorites';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 const CATEGORIES = [
@@ -16,7 +17,19 @@ const CATEGORIES = [
   { key: 'social', label: 'Social' },
   { key: 'email', label: 'Email' },
   { key: 'utilities', label: 'Utilities' },
+  { key: 'transportation', label: 'Transportation' },
 ];
+
+const CATEGORY_COLORS: Record<string, string> = {
+  banking: '#1565C0',
+  government: '#B71C1C',
+  healthcare: '#2E7D32',
+  shopping: '#E65100',
+  social: '#7B1FA2',
+  email: '#0277BD',
+  utilities: '#455A64',
+  transportation: '#F57C00',
+};
 
 interface Site {
   id: string;
@@ -29,6 +42,7 @@ interface Site {
 
 export default function SitesScreen() {
   const [sites, setSites] = useState<Site[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const [category, setCategory] = useState('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -53,6 +67,12 @@ export default function SitesScreen() {
     }
   }
 
+  useFocusEffect(
+    useCallback(() => {
+      getFavorites().then(setFavorites);
+    }, [])
+  );
+
   useEffect(() => {
     const timer = setTimeout(() => {
       if (search.length >= 2 || search.length === 0) {
@@ -62,6 +82,53 @@ export default function SitesScreen() {
     return () => clearTimeout(timer);
   }, [search, category]);
 
+  const sortedSites = useMemo(() => {
+    const favSet = new Set(favorites);
+    return [...sites].sort((a, b) => {
+      const aFav = favSet.has(a.id) ? 0 : 1;
+      const bFav = favSet.has(b.id) ? 0 : 1;
+      return aFav - bFav;
+    });
+  }, [sites, favorites]);
+
+  async function handleToggleFavorite(id: string) {
+    const updated = await toggleFavorite(id);
+    setFavorites(updated);
+  }
+
+  function renderSite({ item }: { item: Site }) {
+    const isFav = favorites.includes(item.id);
+    const catColor = CATEGORY_COLORS[item.category] || '#455A64';
+    const catLabel = CATEGORIES.find((c) => c.key === item.category)?.label || item.category;
+
+    return (
+      <Pressable
+        style={styles.siteRow}
+        onPress={() => handleToggleFavorite(item.id)}
+        accessibilityLabel={`${item.name}, ${catLabel}. ${isFav ? 'Favorited' : 'Not favorited'}. Tap to toggle favorite.`}
+        accessibilityRole="button"
+      >
+        <Image
+          source={{ uri: `https://www.google.com/s2/favicons?domain=${item.domain}&sz=32` }}
+          style={styles.favicon}
+        />
+        <View style={styles.siteInfo}>
+          <SafeText variant="h3" style={styles.siteName}>{item.name}</SafeText>
+          <SafeText variant="caption" color="#616161">{item.domain}</SafeText>
+        </View>
+        <View style={[styles.categoryBadge, { backgroundColor: catColor + '18' }]}>
+          <Text style={[styles.categoryText, { color: catColor }]}>{catLabel}</Text>
+        </View>
+        <Ionicons
+          name={isFav ? 'star' : 'star-outline'}
+          size={26}
+          color={isFav ? '#F57C00' : '#BDBDBD'}
+          style={styles.starIcon}
+        />
+      </Pressable>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -70,7 +137,7 @@ export default function SitesScreen() {
           <SafeText variant="h1">Sites</SafeText>
         </View>
         <SafeText variant="body" color="#616161">
-          These websites have been verified as safe
+          Tap the star to add favorites
         </SafeText>
       </View>
 
@@ -133,23 +200,10 @@ export default function SitesScreen() {
         <LoadingSpinner message="Loading sites..." />
       ) : (
         <FlatList
-          data={sites}
+          data={sortedSites}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <Card style={styles.siteCard}>
-              <View style={styles.siteRow}>
-                <View style={styles.siteInfo}>
-                  <SafeText variant="h3">{item.name}</SafeText>
-                  <SafeText variant="body" color="#1565C0">{item.domain}</SafeText>
-                  <SafeText variant="caption" color="#616161">{item.description}</SafeText>
-                </View>
-                {item.verified && (
-                  <Ionicons name="shield-checkmark" size={24} color="#2E7D32" />
-                )}
-              </View>
-            </Card>
-          )}
+          renderItem={renderSite}
           ListEmptyComponent={
             <View style={styles.empty}>
               <SafeText color="#616161" align="center">No sites found</SafeText>
@@ -219,13 +273,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#E3F2FD',
   },
   list: { padding: 24, paddingTop: 8 },
-  siteCard: { marginBottom: 8 },
   siteRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 72,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 8,
+    minHeight: 64,
+  },
+  favicon: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    marginRight: 12,
+    backgroundColor: '#E0E0E0',
   },
   siteInfo: { flex: 1 },
-  verified: { fontSize: 24, marginLeft: 8 },
+  siteName: { marginBottom: 2 },
+  categoryBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  categoryText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  starIcon: {
+    marginLeft: 10,
+  },
   empty: { padding: 48 },
 });

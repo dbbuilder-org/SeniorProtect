@@ -18,7 +18,6 @@ const trustedSites = [
   { name: 'USPS', domain: 'usps.com', category: 'government', description: 'United States Postal Service' },
   { name: 'VA', domain: 'va.gov', category: 'government', description: 'Department of Veterans Affairs' },
   { name: 'FTC', domain: 'ftc.gov', category: 'government', description: 'Federal Trade Commission' },
-  { name: 'FBI IC3', domain: 'ic3.gov', category: 'government', description: 'FBI Internet Crime Complaint Center' },
 
   // Healthcare
   { name: 'Mayo Clinic', domain: 'mayoclinic.org', category: 'healthcare', description: 'Mayo Clinic health information' },
@@ -28,6 +27,9 @@ const trustedSites = [
   { name: 'CDC', domain: 'cdc.gov', category: 'healthcare', description: 'Centers for Disease Control and Prevention' },
   { name: 'AARP', domain: 'aarp.org', category: 'healthcare', description: 'American Association of Retired Persons' },
   { name: 'UnitedHealthcare', domain: 'uhc.com', category: 'healthcare', description: 'UnitedHealthcare insurance' },
+  { name: 'CVS', domain: 'cvs.com', category: 'healthcare', description: 'CVS Pharmacy and health services' },
+  { name: 'Walgreens', domain: 'walgreens.com', category: 'healthcare', description: 'Walgreens pharmacy and health' },
+  { name: 'Rite Aid', domain: 'riteaid.com', category: 'healthcare', description: 'Rite Aid pharmacy' },
 
   // Shopping
   { name: 'Amazon', domain: 'amazon.com', category: 'shopping', description: 'Amazon online shopping' },
@@ -64,6 +66,12 @@ const trustedSites = [
   { name: 'PayPal', domain: 'paypal.com', category: 'utilities', description: 'PayPal online payments' },
   { name: 'Apple', domain: 'apple.com', category: 'utilities', description: 'Apple products and services' },
   { name: 'Microsoft', domain: 'microsoft.com', category: 'utilities', description: 'Microsoft products and services' },
+
+  // Transportation
+  { name: 'AAA', domain: 'aaa.com', category: 'transportation', description: 'AAA roadside assistance and travel' },
+  { name: 'Uber', domain: 'uber.com', category: 'transportation', description: 'Uber ride-sharing service' },
+  { name: 'Lyft', domain: 'lyft.com', category: 'transportation', description: 'Lyft ride-sharing service' },
+  { name: 'Amtrak', domain: 'amtrak.com', category: 'transportation', description: 'Amtrak passenger rail service' },
 ];
 
 async function seed() {

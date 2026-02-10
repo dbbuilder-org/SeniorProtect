@@ -1,23 +1,24 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Pressable, RefreshControl, FlatList } from 'react-native';
-import { router } from 'expo-router';
+import React, { useState, useCallback } from 'react';
+import { View, StyleSheet, FlatList, Pressable, Image } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { SafeText } from '../../components/ui/SafeText';
 import { BigButton } from '../../components/ui/BigButton';
 import { api } from '../../lib/api';
+import { getFavorites } from '../../lib/favorites';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-const CATEGORIES = [
-  { key: '', label: 'All' },
-  { key: 'banking', label: 'Banking' },
-  { key: 'government', label: 'Government' },
-  { key: 'healthcare', label: 'Healthcare' },
-  { key: 'shopping', label: 'Shopping' },
-  { key: 'social', label: 'Social' },
-  { key: 'email', label: 'Email' },
-  { key: 'utilities', label: 'Utilities' },
-];
+const CATEGORY_COLORS: Record<string, string> = {
+  banking: '#1565C0',
+  government: '#B71C1C',
+  healthcare: '#2E7D32',
+  shopping: '#E65100',
+  social: '#7B1FA2',
+  email: '#0277BD',
+  utilities: '#455A64',
+  transportation: '#F57C00',
+};
 
 interface Site {
   id: string;
@@ -30,34 +31,49 @@ interface Site {
 
 export default function HomeScreen() {
   const { user } = useAuth();
-  const [sites, setSites] = useState<Site[]>([]);
-  const [category, setCategory] = useState('');
+  const [favoriteSites, setFavoriteSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
-  const loadSites = useCallback(async (cat: string) => {
-    try {
-      const data = await api.getSites(cat || undefined);
-      setSites(data);
-    } catch {
-      setSites([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    setLoading(true);
-    loadSites(category);
-  }, [category, loadSites]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadSites(category);
-    setRefreshing(false);
-  }, [category, loadSites]);
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      (async () => {
+        setLoading(true);
+        try {
+          const [allSites, favIds] = await Promise.all([
+            api.getSites(),
+            getFavorites(),
+          ]);
+          if (cancelled) return;
+          const favSet = new Set(favIds);
+          setFavoriteSites(allSites.filter((s: Site) => favSet.has(s.id)));
+        } catch {
+          if (!cancelled) setFavoriteSites([]);
+        } finally {
+          if (!cancelled) setLoading(false);
+        }
+      })();
+      return () => { cancelled = true; };
+    }, [])
+  );
 
   const firstName = user?.displayName?.split(' ')[0] || '';
+
+  function renderFavoriteSite({ item }: { item: Site }) {
+    const bgColor = CATEGORY_COLORS[item.category] || '#455A64';
+    return (
+      <View style={[styles.favCard, { backgroundColor: bgColor }]}>
+        <Image
+          source={{ uri: `https://www.google.com/s2/favicons?domain=${item.domain}&sz=32` }}
+          style={styles.favFavicon}
+        />
+        <View style={styles.favInfo}>
+          <SafeText variant="h3" color="#FFFFFF">{item.name}</SafeText>
+          <SafeText variant="caption" color="rgba(255,255,255,0.85)">{item.domain}</SafeText>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -69,58 +85,38 @@ export default function HomeScreen() {
         </SafeText>
       </View>
 
-      {/* Category pills */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.pillScroll}
-        contentContainerStyle={styles.pillContainer}
-      >
-        {CATEGORIES.map((cat) => (
-          <Pressable
-            key={cat.key}
-            style={[styles.pill, category === cat.key && styles.pillActive]}
-            onPress={() => setCategory(cat.key)}
-            accessibilityLabel={`Filter by ${cat.label}`}
-            accessibilityRole="button"
-          >
-            <SafeText
-              variant="body"
-              color={category === cat.key ? '#FFFFFF' : '#1565C0'}
-              style={styles.pillText}
-            >
-              {cat.label}
-            </SafeText>
-          </Pressable>
-        ))}
-      </ScrollView>
+      <SafeText variant="body" color="#616161" style={styles.subtitle}>
+        Your favorite trusted sites
+      </SafeText>
 
-      {/* Sites list */}
+      {/* Favorites list */}
       <FlatList
-        data={sites}
+        data={favoriteSites}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.sitesList}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        renderItem={({ item }) => (
-          <View style={styles.siteCard}>
-            <View style={styles.siteInfo}>
-              <SafeText variant="h3">{item.name}</SafeText>
-              <SafeText variant="body" color="#1565C0">{item.domain}</SafeText>
-            </View>
-            {item.verified && (
-              <Ionicons name="shield-checkmark" size={24} color="#2E7D32" />
-            )}
-          </View>
-        )}
+        contentContainerStyle={styles.favList}
+        renderItem={renderFavoriteSite}
         ListEmptyComponent={
           loading ? (
             <SafeText variant="body" color="#616161" align="center" style={styles.emptyText}>
-              Loading sites...
+              Loading...
             </SafeText>
           ) : (
-            <SafeText variant="body" color="#616161" align="center" style={styles.emptyText}>
-              No sites found
-            </SafeText>
+            <View style={styles.emptyState}>
+              <Ionicons name="star-outline" size={48} color="#BDBDBD" />
+              <SafeText variant="body" color="#616161" align="center" style={styles.emptyLabel}>
+                Add favorites on the Sites tab
+              </SafeText>
+              <Pressable
+                style={styles.goToSitesBtn}
+                onPress={() => router.navigate('/(tabs)/sites')}
+                accessibilityLabel="Go to Sites tab"
+                accessibilityRole="button"
+              >
+                <SafeText variant="body" color="#1565C0" style={styles.goToSitesText}>
+                  Go to Sites
+                </SafeText>
+              </Pressable>
+            </View>
           )
         }
       />
@@ -154,55 +150,60 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 12,
+    paddingBottom: 4,
     gap: 12,
   },
   greeting: { flex: 1 },
 
-  pillScroll: { flexGrow: 0 },
-  pillContainer: {
-    paddingHorizontal: 20,
+  subtitle: {
+    paddingHorizontal: 24,
     paddingBottom: 12,
-    gap: 8,
-  },
-  pill: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 24,
-    backgroundColor: '#E3F2FD',
-    minHeight: 48,
-    justifyContent: 'center',
-  },
-  pillActive: {
-    backgroundColor: '#1565C0',
-  },
-  pillText: {
-    fontWeight: '600',
   },
 
-  sitesList: {
+  favList: {
     paddingHorizontal: 20,
     paddingTop: 4,
     paddingBottom: 8,
   },
-  siteCard: {
+  favCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FAFAFA',
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 16,
-    marginBottom: 8,
-    minHeight: 64,
+    marginBottom: 10,
+    minHeight: 68,
   },
-  siteInfo: { flex: 1 },
+  favFavicon: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    marginRight: 14,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  favInfo: { flex: 1 },
 
+  emptyState: {
+    alignItems: 'center',
+    paddingTop: 60,
+    gap: 12,
+  },
   emptyText: { paddingTop: 48 },
+  emptyLabel: { marginTop: 4 },
+  goToSitesBtn: {
+    marginTop: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#E3F2FD',
+    minHeight: 52,
+    justifyContent: 'center',
+  },
+  goToSitesText: { fontWeight: '600' },
 
   actions: {
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 16,
-    marginTop: -12,
     gap: 10,
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',
