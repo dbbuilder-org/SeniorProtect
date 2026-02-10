@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ContentType, ThreatLevel, TrustedSiteCategory } from './types';
+import { ContentType, ThreatLevel, TrustedSiteCategory } from './types.js';
 
 // Auth schemas
 export const registerSchema = z.object({

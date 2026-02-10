@@ -1,4 +1,4 @@
-import { ThreatLevel, TrustedSiteCategory } from './types';
+import { ThreatLevel, TrustedSiteCategory } from './types.js';
 
 // API Routes
 export const API_VERSION = 'v1';
