@@ -12,9 +12,10 @@ const SPACING = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 };
 
 interface BadgeProps {
   level: 'safe' | 'caution' | 'danger';
+  compact?: boolean;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ level }) => {
+export const Badge: React.FC<BadgeProps> = ({ level, compact = false }) => {
   const getLabel = () => {
     switch (level) {
       case 'safe':
@@ -41,11 +42,19 @@ export const Badge: React.FC<BadgeProps> = ({ level }) => {
 
   return (
     <View
-      style={[styles.badge, { backgroundColor: colors.bg }]}
+      style={[
+        styles.badge,
+        compact && styles.badgeCompact,
+        { backgroundColor: colors.bg },
+      ]}
       accessibilityRole="text"
       accessibilityLabel={`Threat level: ${getLabel()}`}
     >
-      <SafeText variant="bodyLarge" color={colors.text} style={styles.text}>
+      <SafeText
+        variant={compact ? 'caption' : 'bodyLarge'}
+        color={colors.text}
+        style={styles.text}
+      >
         {getLabel()}
       </SafeText>
     </View>
@@ -58,6 +67,11 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     borderRadius: 24,
     alignSelf: 'flex-start',
+  },
+  badgeCompact: {
+    paddingHorizontal: SPACING.sm + 4,
+    paddingVertical: SPACING.xs,
+    borderRadius: 12,
   },
   text: {
     fontWeight: '700',

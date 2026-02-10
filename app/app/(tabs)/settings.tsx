@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { SafeText } from '../../components/ui/SafeText';
@@ -12,7 +12,10 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <SafeText variant="h1">Settings</SafeText>
+        <View style={styles.headerRow}>
+          <Text style={styles.headerIcon}>{'\u2699\uFE0F'}</Text>
+          <SafeText variant="h1">Settings</SafeText>
+        </View>
 
         <Card style={styles.card}>
           <SafeText variant="h3">Account</SafeText>
@@ -52,6 +55,8 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   content: { padding: 24 },
+  headerRow: { flexDirection: 'row' as const, alignItems: 'center' as const },
+  headerIcon: { fontSize: 32, marginRight: 12 },
   card: { marginTop: 16, marginBottom: 8 },
   row: {
     flexDirection: 'row',

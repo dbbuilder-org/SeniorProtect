@@ -165,11 +165,33 @@ class ApiClient {
     return this.fetch<any[]>(`/api/v1/sites${query}`);
   }
 
+  async addTrustedSite(name: string, domain: string, category: string, description?: string) {
+    return this.fetch('/api/v1/sites', {
+      method: 'POST',
+      body: { name, domain, category, description: description || '' },
+    });
+  }
+
   async searchSites(q: string, category?: string) {
     const params = new URLSearchParams();
     if (q) params.set('q', q);
     if (category) params.set('category', category);
     return this.fetch<any[]>(`/api/v1/sites/search?${params.toString()}`);
+  }
+
+  // User dashboard
+  async getRecentChecks(limit = 5) {
+    return this.fetch<any[]>(`/api/v1/user/checks?limit=${limit}`);
+  }
+
+  async getUserStats() {
+    return this.fetch<{
+      total: number;
+      safe: number;
+      caution: number;
+      danger: number;
+      threatsCaught: number;
+    }>('/api/v1/user/statistics');
   }
 }
 

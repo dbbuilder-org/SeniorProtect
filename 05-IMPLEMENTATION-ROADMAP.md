@@ -1,3 +1,5 @@
+> **Note (2026-02-10):** This document has been reconciled into the consolidated roadmap at `docs/ROADMAP-2026-02-10.md`. Refer to that file for current project status, gap analysis, and sprint plan.
+
 # Senior Protection App - Implementation Roadmap
 
 ## Project Timeline Overview

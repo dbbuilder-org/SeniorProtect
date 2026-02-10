@@ -1,16 +1,13 @@
 import { Tabs } from 'expo-router';
-import { Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
-function TabIcon({ name, focused }: { name: string; focused: boolean }) {
-  const icons: Record<string, string> = {
-    home: '🛡️',
-    sites: '✅',
-    settings: '⚙️',
-  };
+function TabIcon({ name, color, focused }: { name: keyof typeof Ionicons.glyphMap; color: string; focused: boolean }) {
   return (
-    <Text style={[styles.icon, focused && styles.iconFocused]}>
-      {icons[name] || '📋'}
-    </Text>
+    <View style={[styles.iconWrap, focused && styles.iconWrapFocused]}>
+      <Ionicons name={name} size={22} color={color} />
+    </View>
   );
 }
 
@@ -19,26 +16,50 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#1565C0',
-        tabBarInactiveTintColor: '#616161',
-        tabBarLabelStyle: { fontSize: 16, fontWeight: '600', paddingBottom: 4 },
-        tabBarStyle: { height: 80, paddingTop: 8 },
-        tabBarItemStyle: { minHeight: 60 },
+        tabBarActiveTintColor: '#FFFFFF',
+        tabBarInactiveTintColor: '#FFFFFF',
+        tabBarStyle: {
+          backgroundColor: '#3A3A3C',
+          borderTopWidth: 0,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} />,
-          tabBarAccessibilityLabel: 'Home screen',
+          title: 'Status',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="shield-half" color={focused ? '#C62828' : '#FFFFFF'} focused={focused} />
+          ),
+          tabBarLabel: 'Status',
+          tabBarAccessibilityLabel: 'Status dashboard',
+        }}
+      />
+      <Tabs.Screen
+        name="checker"
+        options={{
+          title: 'Checker',
+          tabBarIcon: ({ focused }) => (
+            <View style={[styles.iconWrap, focused && styles.iconWrapFocused]}>
+              <MaterialCommunityIcons name="magnify" size={24} color={focused ? '#1565C0' : '#FFFFFF'} />
+            </View>
+          ),
+          tabBarLabel: 'Checker',
+          tabBarAccessibilityLabel: 'Safety Checker',
         }}
       />
       <Tabs.Screen
         name="sites"
         options={{
-          title: 'Trusted Sites',
-          tabBarIcon: ({ focused }) => <TabIcon name="sites" focused={focused} />,
+          title: 'Sites',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="shield-checkmark" color={focused ? '#2E7D32' : '#FFFFFF'} focused={focused} />
+          ),
+          tabBarLabel: 'Sites',
           tabBarAccessibilityLabel: 'Trusted websites directory',
         }}
       />
@@ -46,7 +67,10 @@ export default function TabsLayout() {
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ focused }) => <TabIcon name="settings" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="settings" color={focused ? '#7B1FA2' : '#FFFFFF'} focused={focused} />
+          ),
+          tabBarLabel: 'Settings',
           tabBarAccessibilityLabel: 'App settings',
         }}
       />
@@ -55,6 +79,14 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  icon: { fontSize: 24 },
-  iconFocused: { fontSize: 28 },
+  iconWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 48,
+    height: 28,
+    borderRadius: 14,
+  },
+  iconWrapFocused: {
+    backgroundColor: '#FFFFFF',
+  },
 });

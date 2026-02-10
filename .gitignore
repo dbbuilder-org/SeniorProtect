@@ -1,7 +1,12 @@
 node_modules/
 dist/
-.env
-.env.local
+# Secrets
+**/.env
+**/.env.*
+!**/.env.example
+credentials.json
+*.pem
+*.key
 *.tsbuildinfo
 
 # Expo

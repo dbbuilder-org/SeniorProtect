@@ -6,6 +6,7 @@ import { SafeText } from '../../components/ui/SafeText';
 import { BigButton } from '../../components/ui/BigButton';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
+import { BottomNav } from '../../components/ui/BottomNav';
 
 const LEVEL_STYLES = {
   safe: { bg: '#E8F5E9', text: '#1B5E20', icon: '✅', title: 'Looks Safe' },
@@ -110,6 +111,7 @@ export default function ResultsScreen() {
           />
         </View>
       </ScrollView>
+      <BottomNav />
     </SafeAreaView>
   );
 }

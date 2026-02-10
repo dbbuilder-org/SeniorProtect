@@ -9,6 +9,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/auth.js';
 import sitesRoutes from './routes/sites.js';
 import checkRoutes from './routes/check.js';
+import userRoutes from './routes/user.js';
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/sites', sitesRoutes);
 app.use('/api/v1/check', checkRoutes);
+app.use('/api/v1/user', userRoutes);
 
 // Error handler
 app.use(errorHandler);

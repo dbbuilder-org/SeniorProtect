@@ -1,3 +1,5 @@
+> **Note (2026-02-10):** This is the earlier draft roadmap. It has been superseded by `05-IMPLEMENTATION-ROADMAP.md` and reconciled into `docs/ROADMAP-2026-02-10.md`. Refer to that consolidated file for current status.
+
 # Implementation Roadmap
 
 ## Development Philosophy
