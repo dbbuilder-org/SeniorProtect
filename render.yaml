@@ -7,8 +7,8 @@ services:
     runtime: node
     region: oregon
     plan: free
-    buildCommand: npm install --legacy-peer-deps && npm run build:shared && npm run build:server
-    startCommand: npm run db:migrate && npm run db:seed && node server/dist/index.js
+    buildCommand: npm install --legacy-peer-deps && npm run build:shared && npm run build:server && cp -r server/src/db/migrations server/dist/db/migrations
+    startCommand: node server/dist/db/migrate.js && node server/dist/db/seed.js && node server/dist/index.js
     envVars:
       - key: NODE_ENV
         value: production
