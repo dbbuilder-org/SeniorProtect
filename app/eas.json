@@ -12,10 +12,25 @@
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": {
+        "buildConfiguration": "Release"
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://seniorprotect-api.onrender.com"
+      }
     },
     "production": {
       "autoIncrement": true,
+      "ios": {
+        "buildConfiguration": "Release"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://seniorprotect-api.onrender.com"
       }
@@ -27,6 +42,10 @@
         "appleId": "chris@servicevision.net",
         "ascAppId": "",
         "appleTeamId": "J745X8LR59"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "internal"
       }
     }
   }

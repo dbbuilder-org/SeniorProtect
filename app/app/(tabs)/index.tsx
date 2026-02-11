@@ -9,15 +9,15 @@ import { api } from '../../lib/api';
 import { getFavorites } from '../../lib/favorites';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-const CATEGORY_COLORS: Record<string, string> = {
-  banking: '#1565C0',
-  government: '#B71C1C',
-  healthcare: '#2E7D32',
-  shopping: '#E65100',
-  social: '#7B1FA2',
-  email: '#0277BD',
-  utilities: '#455A64',
-  transportation: '#F57C00',
+const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
+  banking: { bg: '#BBDEFB', text: '#0D47A1' },
+  government: { bg: '#FFCDD2', text: '#B71C1C' },
+  healthcare: { bg: '#C8E6C9', text: '#1B5E20' },
+  shopping: { bg: '#FFE0B2', text: '#E65100' },
+  social: { bg: '#E1BEE7', text: '#6A1B9A' },
+  email: { bg: '#B3E5FC', text: '#01579B' },
+  utilities: { bg: '#CFD8DC', text: '#263238' },
+  transportation: { bg: '#FFE0B2', text: '#E65100' },
 };
 
 interface Site {
@@ -60,16 +60,16 @@ export default function HomeScreen() {
   const firstName = user?.displayName?.split(' ')[0] || '';
 
   function renderFavoriteSite({ item }: { item: Site }) {
-    const bgColor = CATEGORY_COLORS[item.category] || '#455A64';
+    const colors = CATEGORY_COLORS[item.category] || { bg: '#CFD8DC', text: '#263238' };
     return (
-      <View style={[styles.favCard, { backgroundColor: bgColor }]}>
+      <View style={[styles.favCard, { backgroundColor: colors.bg }]}>
         <Image
           source={{ uri: `https://www.google.com/s2/favicons?domain=${item.domain}&sz=32` }}
           style={styles.favFavicon}
         />
         <View style={styles.favInfo}>
-          <SafeText variant="h3" color="#FFFFFF">{item.name}</SafeText>
-          <SafeText variant="caption" color="rgba(255,255,255,0.85)">{item.domain}</SafeText>
+          <SafeText variant="h3" color={colors.text}>{item.name}</SafeText>
+          <SafeText variant="caption" color={colors.text + 'CC'}>{item.domain}</SafeText>
         </View>
       </View>
     );
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 6,
     marginRight: 14,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.6)',
   },
   favInfo: { flex: 1 },
 

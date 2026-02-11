@@ -20,15 +20,15 @@ const CATEGORIES = [
   { key: 'transportation', label: 'Transportation' },
 ];
 
-const CATEGORY_COLORS: Record<string, string> = {
-  banking: '#1565C0',
-  government: '#B71C1C',
-  healthcare: '#2E7D32',
-  shopping: '#E65100',
-  social: '#7B1FA2',
-  email: '#0277BD',
-  utilities: '#455A64',
-  transportation: '#F57C00',
+const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
+  banking: { bg: '#BBDEFB', text: '#0D47A1' },
+  government: { bg: '#FFCDD2', text: '#B71C1C' },
+  healthcare: { bg: '#C8E6C9', text: '#1B5E20' },
+  shopping: { bg: '#FFE0B2', text: '#E65100' },
+  social: { bg: '#E1BEE7', text: '#6A1B9A' },
+  email: { bg: '#B3E5FC', text: '#01579B' },
+  utilities: { bg: '#CFD8DC', text: '#263238' },
+  transportation: { bg: '#FFE0B2', text: '#E65100' },
 };
 
 interface Site {
@@ -98,12 +98,12 @@ export default function SitesScreen() {
 
   function renderSite({ item }: { item: Site }) {
     const isFav = favorites.includes(item.id);
-    const catColor = CATEGORY_COLORS[item.category] || '#455A64';
+    const colors = CATEGORY_COLORS[item.category] || { bg: '#CFD8DC', text: '#263238' };
     const catLabel = CATEGORIES.find((c) => c.key === item.category)?.label || item.category;
 
     return (
       <Pressable
-        style={styles.siteRow}
+        style={[styles.siteRow, { backgroundColor: colors.bg }]}
         onPress={() => handleToggleFavorite(item.id)}
         accessibilityLabel={`${item.name}, ${catLabel}. ${isFav ? 'Favorited' : 'Not favorited'}. Tap to toggle favorite.`}
         accessibilityRole="button"
@@ -113,11 +113,11 @@ export default function SitesScreen() {
           style={styles.favicon}
         />
         <View style={styles.siteInfo}>
-          <SafeText variant="h3" style={styles.siteName}>{item.name}</SafeText>
-          <SafeText variant="caption" color="#616161">{item.domain}</SafeText>
+          <SafeText variant="h3" color={colors.text} style={styles.siteName}>{item.name}</SafeText>
+          <SafeText variant="caption" color={colors.text + 'AA'}>{item.domain}</SafeText>
         </View>
-        <View style={[styles.categoryBadge, { backgroundColor: catColor + '18' }]}>
-          <Text style={[styles.categoryText, { color: catColor }]}>{catLabel}</Text>
+        <View style={[styles.categoryBadge, { backgroundColor: 'rgba(255,255,255,0.5)' }]}>
+          <Text style={[styles.categoryText, { color: colors.text }]}>{catLabel}</Text>
         </View>
         <Ionicons
           name={isFav ? 'star' : 'star-outline'}
