@@ -40,7 +40,6 @@
     "production": {
       "ios": {
         "appleId": "chris@servicevision.net",
-        "ascAppId": "",
         "appleTeamId": "J745X8LR59"
       },
       "android": {
