@@ -1,52 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <defs>
-    <linearGradient id="shieldGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1A3A6B"/>
-      <stop offset="100%" stop-color="#0D2240"/>
-    </linearGradient>
-    <linearGradient id="innerGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1E4D8C"/>
-      <stop offset="100%" stop-color="#142F5C"/>
-    </linearGradient>
-    <linearGradient id="stripeGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#C62828"/>
-      <stop offset="100%" stop-color="#E53935"/>
-    </linearGradient>
-  </defs>
+  <!-- Shield - left half: white -->
+  <path d="M512 80 C512 80 140 180 140 180 L140 500 C140 740 512 960 512 960 L512 80 Z"
+        fill="#FFFFFF" stroke="#1A3A6B" stroke-width="8"/>
 
-  <!-- Background fill -->
-  <rect width="1024" height="1024" rx="224" fill="#0D2240"/>
+  <!-- Shield - right half: red -->
+  <path d="M512 80 C512 80 884 180 884 180 L884 500 C884 740 512 960 512 960 L512 80 Z"
+        fill="#C62828" stroke="#1A3A6B" stroke-width="8"/>
 
-  <!-- Shield body -->
-  <path d="M512 120 C512 120 200 200 200 200 L200 480 C200 700 512 920 512 920 C512 920 824 700 824 480 L824 200 Z"
-        fill="url(#shieldGrad)" stroke="#FFFFFF" stroke-width="12" stroke-linejoin="round"/>
+  <!-- Shield outer border (on top) -->
+  <path d="M512 80 C512 80 140 180 140 180 L140 500 C140 740 512 960 512 960 C512 960 884 740 884 500 L884 180 Z"
+        fill="none" stroke="#1A3A6B" stroke-width="14" stroke-linejoin="round"/>
 
-  <!-- Inner shield -->
-  <path d="M512 170 C512 170 240 240 240 240 L240 475 C240 670 512 870 512 870 C512 870 784 670 784 475 L784 240 Z"
-        fill="url(#innerGrad)"/>
-
-  <!-- Red stripe top -->
-  <path d="M512 170 C512 170 240 240 240 240 L240 310 L784 310 L784 240 C784 240 512 170 512 170 Z"
-        fill="url(#stripeGrad)" opacity="0.9"/>
-
-  <!-- Red stripe bottom -->
-  <path d="M280 580 L744 580 L744 640 C744 640 720 680 700 700 L324 700 C304 680 280 640 280 640 Z"
-        fill="url(#stripeGrad)" opacity="0.9"/>
-
-  <!-- White stars (small, decorative) -->
-  <!-- Star left -->
-  <polygon points="350,278 356,262 362,278 378,278 366,288 370,304 356,294 342,304 346,288 334,278"
-           fill="#FFFFFF" opacity="0.9"/>
-  <!-- Star right -->
-  <polygon points="662,278 668,262 674,278 690,278 678,288 682,304 668,294 654,304 658,288 646,278"
-           fill="#FFFFFF" opacity="0.9"/>
-
-  <!-- SP Text -->
-  <text x="512" y="510" text-anchor="middle" dominant-baseline="central"
+  <!-- SP Text with contrasting colors -->
+  <!-- S on white half: blue -->
+  <text x="370" y="560" text-anchor="middle" dominant-baseline="central"
         font-family="system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif"
-        font-size="260" font-weight="800" fill="#FFFFFF"
-        letter-spacing="-8">SP</text>
+        font-size="340" font-weight="900" fill="#1A3A6B">S</text>
 
-  <!-- Small checkmark below text -->
-  <path d="M460 660 L500 700 L570 620" fill="none" stroke="#4CAF50" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- P on red half: white -->
+  <text x="654" y="560" text-anchor="middle" dominant-baseline="central"
+        font-family="system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif"
+        font-size="340" font-weight="900" fill="#FFFFFF">P</text>
 </svg>
